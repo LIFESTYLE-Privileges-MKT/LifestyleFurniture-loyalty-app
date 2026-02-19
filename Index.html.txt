@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    :root { --main: #14284b; --gold: #c5a059; --bg: #f8f9fa; --red: #e74c3c; }
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: #ddd; display: flex; justify-content: center; }
+    #app { width: 100%; max-width: 450px; min-height: 100vh; background: var(--bg); position: relative; padding-bottom: 90px; box-shadow: 0 0 30px rgba(0,0,0,0.2); }
+    .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    .hero { background: var(--main); color: white; padding: 50px 20px; text-align: center; border-radius: 0 0 35px 35px; margin: -20px -20px 20px; }
+    .pts-big { font-size: 55px; font-weight: 600; color: var(--gold); line-height: 1; }
+    .card { background: white; margin-bottom: 15px; padding: 22px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
+    
+    input, select { width: 100%; padding: 14px; margin-top: 10px; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; background: white; outline: none; transition: border 0.3s; }
+    input:focus, select:focus { border: 1px solid var(--gold); }
+    
+    .btn-main { background: var(--main); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-weight: 500; cursor: pointer; margin-top: 15px; font-size: 16px; }
+    .btn-off { background: #eee !important; color: #bbb !important; cursor: not-allowed; border: 1px solid #ddd; }
+    
+    .nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; display: flex; padding: 12px 0 25px; border-top: 1px solid #eee; z-index: 100; }
+    .nav-btn { flex: 1; text-align: center; color: #abb2bf; font-size: 11px; cursor: pointer; }
+    .nav-btn.active { color: var(--main); font-weight: 600; }
+    .nav-btn i { font-size: 24px; display: block; margin-bottom: 5px; }
+
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+    .modal { background: white; width: 100%; max-width: 410px; border-radius: 25px; padding: 25px; text-align: center; max-height: 80vh; overflow-y: auto; }
+    
+    .form-group { display: flex; gap: 10px; width: 100%; }
+    .section-title { font-weight: 600; color: var(--main); margin-top: 25px; margin-bottom: 5px; border-bottom: 2px solid #eee; padding-bottom: 8px; font-size: 16px; }
+
+    #cookie-banner { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 450px; background: rgba(20, 40, 75, 0.95); color: white; padding: 15px 20px; z-index: 9999; display: none; align-items: center; justify-content: space-between; font-size: 12px; box-sizing: border-box; backdrop-filter: blur(10px); }
+    #cookie-banner a { color: var(--gold); text-decoration: underline; }
+    .cookie-btn { background: var(--gold); border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; color: #fff; cursor: pointer; white-space: nowrap; }
+    .swal2-popup { font-family: 'Kanit', sans-serif !important; border-radius: 20px !important; }
+  </style>
+</head>
+<body>
+
+<div id="cookie-banner">
+  <div style="flex:1; padding-right:15px; line-height:1.4;">
+    We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies. 
+    <a href="https://www.lifestylefurniture.co.th/en/cookie-policy" target="_blank">More info</a>.
+  </div>
+  <button class="cookie-btn" onclick="acceptCookies()">Got it</button>
+</div>
+
+<div id="app">
+  <div id="p-login" class="page active" style="padding-top: 100px;">
+    <div style="text-align:center; margin-bottom:40px;">
+      <h2 style="color:var(--main); letter-spacing:4px; margin:0;">LIFESTYLE</h2>
+      <p style="color:#888; font-size:13px;">PRIVILEGES PROGRAM</p>
+    </div>
+    <input type="email" id="li-email" placeholder="Email Address">
+    <input type="password" id="li-pass" placeholder="Password">
+    <button class="btn-main" onclick="handleLogin()">SIGN IN</button>
+    <div style="text-align:right; margin-top:8px;">
+      <span style="color:var(--gold); font-size:13px; cursor:pointer; font-weight:500;" onclick="forgotPassword()">Forgot Password?</span>
+    </div>
+    <p style="text-align:center; margin-top:30px; font-size:14px;">Not a member? <span style="color:var(--gold); font-weight:600; cursor:pointer;" onclick="showPage('reg')">Register Now</span></p>
+  </div>
+
+  <div id="p-reg" class="page" style="padding-top: 40px; padding-bottom: 40px; overflow-y: auto;">
+    <h2 style="color:var(--main); margin-bottom:5px;">Create Account</h2>
+    <p style="color:#888; font-size:13px; margin-top:0;">Please fill in your details to join LIFESTYLE Privileges.</p>
+
+    <div class="section-title">Personal Information</div>
+    <div class="form-group">
+      <select id="re-title" style="width: 35%;"><option value="">Title</option><option>Mr.</option><option>Mrs.</option><option>Ms.</option></select>
+      <input id="re-name" placeholder="Full Name" style="width: 65%;">
+    </div>
+    <input id="re-email" type="email" placeholder="Email Address (Username)">
+    <input id="re-phone" type="tel" placeholder="Mobile Phone">
+    <input id="re-line" placeholder="Line ID (Optional)">
+    <input id="re-pass" type="password" placeholder="Create Password">
+    
+    <div class="form-group">
+      <select id="re-nation" style="width: 50%;">
+        <option value="">Nationality</option><option>Thai</option><option>Chinese</option><option>American</option><option>Other</option>
+      </select>
+      <div style="width: 50%;">
+        <small style="color:#888; display:block; margin: 10px 0 -5px 5px;">Date of Birth</small>
+        <input id="re-birth" type="date">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <select id="re-custType" style="width: 50%;"><option value="">Customer Type</option><option>General</option><option>Designer</option><option>Project</option></select>
+      <select id="re-propType" style="width: 50%;"><option value="">Property Type</option><option>Condo</option><option>House</option><option>Townhome</option></select>
+    </div>
+
+    <div class="section-title">Address Information</div>
+    <input id="re-address" placeholder="Address (House No., Building, Street)">
+    <div class="form-group">
+      <select id="re-prov" style="width: 50%;">
+        <option value="">Province</option>
+        <option>Bangkok</option><option>Chiang Mai</option><option>Phuket</option><option>Other</option>
+      </select>
+      <input id="re-dist" placeholder="District" style="width: 50%;">
+    </div>
+    <div class="form-group">
+      <input id="re-sub" placeholder="Sub-district" style="width: 50%;">
+      <input id="re-post" type="number" placeholder="Postcode" style="width: 50%;">
+    </div>
+
+
+
+    <button class="btn-main" onclick="requestOTP()" style="margin-top:25px;">CONTINUE</button>
+    <p style="text-align:center; margin-top:20px; cursor:pointer; color:var(--main); font-weight:500;" onclick="showPage('login')">Already have an account? Sign In</p>
+  </div>
+
+  <div id="p-home" class="page">
+    <div style="position: sticky; top: 0; z-index: 90; background: var(--bg); margin: -20px -20px 10px; padding: 0 0 10px 0;">
+      <div class="hero" style="margin: 0; padding: 50px 20px 60px; border-radius: 0 0 35px 35px; position: relative;">
+        <button onclick="toggleLang()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; backdrop-filter: blur(5px);">
+          <i class="fa-solid fa-globe"></i> <span id="lang-btn-text">TH/EN</span>
+        </button>
+        <button onclick="document.getElementById('modal-tier-info').style.display='flex'" style="position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; backdrop-filter: blur(5px);">
+          <i class="fa-solid fa-circle-info"></i> <span id="txt-tier-info">Tier Info</span>
+        </button>
+        <div id="h-pts" class="pts-big">0</div>
+        <div id="txt-avail" style="font-size:14px; opacity:0.8;">Available Points</div>
+        <div id="h-tier" style="margin-top:10px; border:1px solid var(--gold); padding:5px 15px; border-radius:20px; display:inline-block; font-weight:500;">-</div>
+        
+        <div id="h-user-info" style="font-size:13px; margin-top:12px; background:rgba(0,0,0,0.15); display:inline-block; padding:5px 15px; border-radius:20px; color:#fff; font-weight:300;">-</div>
+      </div>
+      <div class="card" style="margin: -45px 20px 0; position: relative; z-index: 10; padding: 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.1);">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; margin-bottom: 12px;">
+          <span id="txt-prog" style="color: #888; text-transform: uppercase; letter-spacing: 1px;">Tier Progress</span>
+          <span id="h-spend" style="color: var(--main); font-size: 16px;">0 / 30,000</span>
+        </div>
+        <div style="height:10px; background:#f0f4f8; border-radius:10px; overflow:hidden;">
+          <div id="h-bar" style="height:100%; background: linear-gradient(90deg, var(--gold), #fff); width:0%; border-radius:10px; transition: width 1s ease-in-out;"></div>
+        </div>
+      </div>
+      <div style="position: absolute; bottom: -15px; left: 0; width: 100%; height: 15px; background: linear-gradient(to bottom, var(--bg), transparent); pointer-events: none;"></div>
+    </div>
+    <div id="txt-promo" style="padding: 10px 0; font-weight: 600; color: var(--main); font-size: 18px;">Special Promotions</div>
+    <div id="rewards-list"></div>
+  </div>
+
+  <div id="p-history" class="page">
+    <div style="position: sticky; top: 0; z-index: 90; background: var(--bg); margin: -20px -20px 10px; padding: 20px 20px 10px 20px; border-bottom: 1px solid #eee;">
+      <h3 id="txt-history" style="color:var(--main); margin: 0;">Redeemed Rewards</h3>
+    </div>
+    <div id="history-list" style="padding-top: 5px;"></div>
+  </div>
+
+  <div id="p-me" class="page">
+    <div class="hero">
+     <div style="position:relative; width:100px; margin:0 auto 15px;">
+       <div style="width:100px; height:100px; background:white; border-radius:50%; border:4px solid var(--gold); overflow:hidden; cursor:pointer;" onclick="document.getElementById('file-upload').click()">
+         <img id="m-profile-pic" src="https://cdn-icons-png.flaticon.com/512/6522/6522516.png" style="width:100%; height:100%; object-fit:cover;">
+       </div>
+       <div style="position:absolute; bottom:0; right:-5px; background:var(--main); color:white; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.2);" onclick="document.getElementById('file-upload').click()">
+         <i class="fa-solid fa-camera" style="font-size:13px;"></i>
+       </div>
+       <input type="file" id="file-upload" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+     </div>
+     <div id="m-name" style="font-size:22px; font-weight:500;">User</div>
+     <div id="m-tier-txt" style="font-size:15px; color:var(--gold);">TIER: -</div>
+   </div>
+    <div class="card" style="margin-top:20px; padding: 5px 20px;">
+      <div style="display:flex; align-items:center; padding:18px 0; border-bottom:1px solid #f5f5f5; cursor:pointer;" onclick="showProfile()">
+        <i class="fa-solid fa-id-card" style="color:var(--gold); width:35px; font-size:20px;"></i> <span id="txt-profile">Member Profile</span> <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:#ddd;"></i>
+      </div>
+      <div style="display:flex; align-items:center; padding:18px 0; cursor:pointer;" onclick="handleSignOut()">
+        <i class="fa-solid fa-sign-out-alt" style="color:var(--gold); width:35px; font-size:20px;"></i> <span id="txt-signout">Sign Out</span> 
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-profile" class="overlay">
+    <div class="modal">
+      <h3 style="color:var(--main); margin-top:0;">Member Profile</h3>
+      <div id="profile-content" style="text-align:left; font-size:14px; line-height:2.2; color:#444; background:#f5f7f9; padding:15px; border-radius:12px;"></div>
+      
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+        <button class="btn-main" style="margin:0; background:#f0f4f8; color:var(--main); border:1px solid #ddd;" onclick="openEditSelf()">Edit Info</button>
+        <button class="btn-main" style="margin:0; background:#fff; color:var(--gold); border:1px solid var(--gold);" onclick="openChangePassword()">Change Password</button>
+        <button class="btn-main" style="margin:0;" onclick="closeProfile()">Close</button>
+      </div>
+      
+    </div>
+  </div>
+
+  <div id="modal-tier-info" class="overlay">
+    <div class="modal" style="max-width: 410px; padding: 25px 20px;">
+      <h3 style="color:var(--main); margin-top:0;" id="txt-tier-title">Tier Privileges</h3>
+      <div style="text-align:left; font-size:13px; line-height:1.6; color:#444; display:flex; flex-direction:column; gap:10px;">
+        <div style="padding:12px; background:#f8f9fa; border-left:4px solid #6c7a89; border-radius:8px;">
+          <strong style="color:#6c7a89; font-size:15px;">LIVING</strong> (0 - 29,999 THB)<br>
+          • ทุกยอดซื้อ 200 บาท รับ 1 คะแนน<br>
+          • รับข่าวสารโปรโมชั่นก่อนใคร
+        </div>
+        <div style="padding:12px; background:#f0f4f8; border-left:4px solid #14284b; border-radius:8px;">
+          <strong style="color:#14284b; font-size:15px;">INSPIRE</strong> (30,000 - 79,999 THB)<br>
+          • ทุกสิทธิประโยชน์ของ LIVING<br>
+          • คูปองส่วนลดพิเศษในเดือนเกิด (Ontop 10%)
+        </div>
+        <div style="padding:12px; background:#fdfbf5; border-left:4px solid #b8860b; border-radius:8px;">
+          <strong style="color:#b8860b; font-size:15px;">FABULOUS</strong> (80,000 - 199,999 THB)<br>
+          • บริการจัดส่งและประกอบฟรีทั่วประเทศ<br>
+          • สิทธิ์เข้าร่วม Private Event ของแบรนด์
+        </div>
+        <div style="padding:12px; background:#1a1a1a; border-left:4px solid #e9c881; border-radius:8px; color: #ddd;">
+          <strong style="color:#e9c881; font-size:15px;">ELITE</strong> (200,000 THB ขึ้นไป)<br>
+          • บริการผู้ช่วยส่วนตัว (Personal Shopper)<br>
+          • สิทธิพิเศษและของขวัญระดับพรีเมียมสูงสุด
+        </div>
+      </div>
+      <button class="btn-main" style="margin-top:20px; width:100%;" onclick="document.getElementById('modal-tier-info').style.display='none'">Close</button>
+    </div>
+  </div>
+
+  <nav id="app-nav" class="nav" style="display:none;">
+    <div class="nav-btn" id="nav-home" onclick="nav('home')"><i class="fa-solid fa-house"></i>Home</div>
+    <div class="nav-btn" id="nav-history" onclick="nav('history')"><i class="fa-solid fa-star"></i>Rewards</div>
+    <div class="nav-btn" id="nav-me" onclick="nav('me')"><i class="fa-solid fa-user"></i>Account</div>
+  </nav>
+
+</div>
+
+<script>
+  let sessionEmail = "";
+  let currentData = null;
+  let tempRegistrationData = null;
+
+  const LANG = {
+    en: {
+      availPts: "Available Points", tierProg: "Tier Progress", promo: "Special Promotions",
+      ptsNeeded: "Points needed:", expiry: "Expiry Date:", redeem: "Redeem",
+      historyTitle: "Redeemed Rewards", noHistory: "No rewards redeemed yet.",
+      expired: "Expired", expiresIn: "Expires in:", memberProfile: "Member Profile",
+      signOut: "Sign Out", terms: "Terms & Conditions:", tierInfo: "Tier Info",
+      valid1hr: "The code will be valid for 1 hour after confirmation.",
+      confirmUse: "Confirm using", ptsToRedeem: "PTS to redeem?",
+      confirm: "Confirm", cancel: "Cancel", fullyRedeemed: "Fully Redeemed",
+      insufficientPts: "Insufficient points", noExpiry: "No expiry"
+    },
+    th: {
+      availPts: "คะแนนสะสม", tierProg: "ความคืบหน้าระดับสมาชิก", promo: "โปรโมชั่นพิเศษ",
+      ptsNeeded: "ใช้คะแนน:", expiry: "หมดอายุ:", redeem: "แลกสิทธิ์",
+      historyTitle: "ประวัติการแลกรางวัล", noHistory: "ยังไม่มีประวัติการแลกรางวัล",
+      expired: "หมดอายุแล้ว", expiresIn: "หมดอายุใน:", memberProfile: "ข้อมูลส่วนตัว",
+      signOut: "ออกจากระบบ", terms: "เงื่อนไขการรับสิทธิ์:", tierInfo: "สิทธิประโยชน์",
+      valid1hr: "โค้ดจะมีอายุการใช้งาน 1 ชั่วโมงหลังกดยืนยัน",
+      confirmUse: "ยืนยันการใช้", ptsToRedeem: "PTS เพื่อแลกสิทธิ์?",
+      confirm: "ยืนยัน", cancel: "ยกเลิก", fullyRedeemed: "สิทธิ์เต็มแล้ว",
+      insufficientPts: "คะแนนไม่เพียงพอ", noExpiry: "ไม่มีกำหนด"
+    }
+  };
+
+  let currentLang = (navigator.language || navigator.userLanguage).startsWith('th') ? 'th' : 'en';
+
+  function toggleLang() {
+    currentLang = currentLang === 'en' ? 'th' : 'en';
+    updateStaticText();
+    if(currentData) renderApp(currentData); 
+  }
+
+  function updateStaticText() {
+    document.getElementById('lang-btn-text').innerText = currentLang === 'en' ? 'EN' : 'TH';
+    document.getElementById('txt-tier-info').innerText = LANG[currentLang].tierInfo;
+    document.getElementById('txt-promo').innerText = LANG[currentLang].promo;
+    document.getElementById('txt-history').innerText = LANG[currentLang].historyTitle;
+    document.getElementById('txt-profile').innerText = LANG[currentLang].memberProfile;
+    document.getElementById('txt-signout').innerText = LANG[currentLang].signOut;
+    document.getElementById('txt-avail').innerText = LANG[currentLang].availPts;
+    document.getElementById('txt-prog').innerText = LANG[currentLang].tierProg;
+    
+    document.getElementById('nav-home').innerHTML = `<i class="fa-solid fa-house"></i>${currentLang==='en'?'Home':'หน้าแรก'}`;
+    document.getElementById('nav-history').innerHTML = `<i class="fa-solid fa-star"></i>${currentLang==='en'?'Rewards':'รางวัล'}`;
+    document.getElementById('nav-me').innerHTML = `<i class="fa-solid fa-user"></i>${currentLang==='en'?'Account':'บัญชี'}`;
+  }
+
+  function applyTheme(tier) {
+    const root = document.documentElement;
+    let t = tier ? tier.toUpperCase() : 'LIVING';
+    
+    if(t.includes('INSPIRE')) {
+      root.style.setProperty('--main', '#14284b');
+      root.style.setProperty('--gold', '#c5a059'); 
+    } else if(t.includes('FABULOUS')) {
+      root.style.setProperty('--main', '#b8860b');
+      root.style.setProperty('--gold', '#14284b');
+    } else if(t.includes('ELITE')) {
+      root.style.setProperty('--main', '#1a1a1a');
+      root.style.setProperty('--gold', '#e9c881'); 
+    } else {
+      root.style.setProperty('--main', '#6c7a89');
+      root.style.setProperty('--gold', '#c5a059');
+    }
+  }
+
+  window.addEventListener('load', () => {
+    if(!localStorage.getItem('cookieConsent')) {
+      document.getElementById('cookie-banner').style.display = 'flex';
+    }
+
+    const savedEmail = localStorage.getItem('sessionEmail');
+    const loginTime = localStorage.getItem('loginTime');
+    
+    if (savedEmail && loginTime) {
+      const now = Date.now();
+      const diffMins = Math.floor((now - parseInt(loginTime)) / 60000); 
+      
+      if (diffMins < 15) {
+        localStorage.setItem('loginTime', now.toString()); 
+        sessionEmail = savedEmail;
+        
+        Swal.fire({ title: 'Loading...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        document.getElementById('app-nav').style.display = 'flex';
+        
+        google.script.run.withSuccessHandler(res => {
+          Swal.close();
+          renderApp(res);
+          nav('home');
+        }).getAppData(sessionEmail);
+      } else {
+        handleSignOut(true);
+      }
+    }
+  });
+
+  function acceptCookies() {
+    localStorage.setItem('cookieConsent', 'true');
+    document.getElementById('cookie-banner').style.display = 'none';
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('p-' + id).classList.add('active');
+    document.getElementById('app-nav').style.display = (id === 'home' || id === 'history' || id === 'me') ? 'flex' : 'none';
+  }
+
+  function nav(id) {
+    document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + id).classList.add('active');
+    showPage(id);
+    sync();
+  }
+
+  function showErrorMsg(msg) { Swal.fire({ icon: 'warning', title: 'Oops...', text: msg, confirmButtonColor: '#14284b' }); }
+
+  // --- ระบบ Popup PDPA และยิง OTP ---
+  function requestOTP() {
+    tempRegistrationData = {
+      title: document.getElementById('re-title').value,
+      name: document.getElementById('re-name').value,
+      phone: document.getElementById('re-phone').value,
+      email: document.getElementById('re-email').value,
+      line: document.getElementById('re-line').value,
+      pass: document.getElementById('re-pass').value,
+      nation: document.getElementById('re-nation').value,
+      birth: document.getElementById('re-birth').value,
+      custType: document.getElementById('re-custType').value,
+      propType: document.getElementById('re-propType').value,
+      address: document.getElementById('re-address').value,
+      sub: document.getElementById('re-sub').value,
+      dist: document.getElementById('re-dist').value,
+      prov: document.getElementById('re-prov').value,
+      post: document.getElementById('re-post').value
+    };
+
+    if(!tempRegistrationData.email || !tempRegistrationData.pass || !tempRegistrationData.name) { 
+      return showErrorMsg("Full Name, Email, and Password are required.");
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(tempRegistrationData.email)) {
+      return showErrorMsg("Invalid Email Format");
+    }
+
+    // ถ้าผ่านเงื่อนไขครบ ให้แสดง Popup PDPA ทันที
+    showPDPAPopup();
+  } 
+
+  // --- ระบบ Popup PDPA (แก้ไขไม่ให้เด้งไปหน้าอื่น) ---
+  function showPDPAPopup() {
+    Swal.fire({
+      title: 'Privacy Policy',
+      html: `
+        <div style="text-align:left; font-size:13px; height:180px; overflow-y:auto; background:#f5f7f9; padding:15px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; line-height:1.6; color:#444;">
+          <strong>ข้อตกลงและเงื่อนไขการคุ้มครองข้อมูลส่วนบุคคล (PDPA)</strong><br><br>
+          เพื่อให้เป็นไปตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 ทางบริษัทฯ ขอความยินยอมจากท่านในการจัดเก็บ ใช้ และประมวลผลข้อมูลส่วนบุคคล เพื่อวัตถุประสงค์ในการมอบสิทธิประโยชน์ โปรโมชั่น และปรับปรุงการให้บริการ...<br><br>
+          
+          <div onclick="openFullPolicy()" style="color:var(--gold); text-decoration:underline; cursor:pointer; font-weight:600; display:inline-block;">อ่านนโยบายฉบับเต็มคลิกที่นี่</div>
+        </div>
+        
+        <div style="display:flex; align-items:flex-start; text-align:left; font-size:14px; background:white; padding:10px; border-radius:8px; border:1px solid #eee;">
+          <input type="checkbox" id="swal-pdpa-check" style="width:22px; height:22px; margin:0 10px 0 0; flex-shrink:0; cursor:pointer;">
+          <label for="swal-pdpa-check" style="color:#111; line-height: 1.4; cursor:pointer; font-weight:500;">I have read and agree to the Privacy Policy.</label>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Accept & Continue',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: 'var(--main)',
+      preConfirm: () => {
+        if (!document.getElementById('swal-pdpa-check').checked) {
+          Swal.showValidationMessage('Please check the box to accept the Privacy Policy');
+          return false;
+        }
+        return true;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        sendOTPProcess();
+      }
+    });
+  }
+
+  // --- ฟังก์ชันเปิดหน้าต่างอ่านนโยบายแบบเต็ม (Pop-up ซ้อน) ---
+  function openFullPolicy() {
+    Swal.fire({
+      title: 'Privacy Policy',
+      html: `
+        <div style="text-align:left; font-size:13px; height:60vh; overflow-y:auto; line-height:1.6; color:#444; padding-right:10px;">
+          
+          <b>นโยบายความเป็นส่วนตัว (Privacy Policy)</b><br><br>
+          บริษัท บุญถาวรเซรามิค จำกัด และบริษัทในเครือ (“บริษัทฯ”) ตระหนักถึงความสำคัญของความเป็นส่วนตัว และการคุ้มครองข้อมูลส่วนบุคคล และมีการกำกับดูแล และการบริหารจัดการข้อมูลส่วนบุคคล ให้มีความสอดคล้องกับกฎหมายคุ้มครองข้อมูลส่วนบุคคล และกฏหมายที่เกี่ยวข้อง จึงขอแจ้งข้อมูลดังต่อไปนี้ให้ท่านทราบเพื่อเป็นการปฏิบัติตาม พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 โดยมีสาระสำคัญดังต่อไปนี้ ..<br><br>
+          <i>1.ข้อมูลส่วนบุคคล
+1.1 ลักษณะของข้อมูลส่วนบุคคล
+ข้อมูลส่วนบุคคล หมายถึง ข้อมูลใด ๆ ที่เกี่ยวกับบุคคลธรรมดาที่ทำให้สามารถระบุถึงตัวบุคคลธรรมดานั้นได้ไม่ว่าทางตรงหรือทางอ้อม โดยไม่รวมถึงข้อมูลส่วนบุคคลของผู้ถึงแก่กรรม
+
+ข้อมูลส่วนบุคคลที่มีความอ่อนไหว หมายถึง ข้อมูลส่วนบุคคลเกี่ยวกับเชื้อชาติ เผ่าพันธุ์ ความคิดเห็นทางการเมือง ความเชื่อในลัทธิ ศาสนาหรือปรัชญา พฤติกรรมทางเพศ ประวัติอาชญากรรม ข้อมูลสุขภาพ ความพิการ ข้อมูลสหภาพแรงงาน ข้อมูลพันธุกรรม ข้อมูลชีวภาพ (เช่น การสแกนลายนิ้วมือ การสแกนใบหน้า เป็นต้น) หรือข้อมูลอื่นใดซึ่งกระทบต่อเจ้าของข้อมูลส่วนบุคคลในทำนองเดียวกันตามที่คณะกรรมการคุ้มครองข้อมูลส่วนบุคคลประกาศกำหนด
+
+1.2 ข้อมูลส่วนบุคคลที่มีการเก็บรวบรวม
+ประเภทของข้อมูลส่วนบุคคลที่บริษัทฯเก็บรวบรวมภายใต้กฎหมายที่เกี่ยวข้องมีดังต่อไปนี้
+
+- ข้อมูลส่วนตัว: ชื่อ นามสกุล เพศ วันเดือนปีเกิด สถานภาพการสมรส หมายเลขบัตรประจำตัวประชาชน หมายเลขหนังสือเดินทาง หมายเลขอื่น ๆ รวมถึงข้อมูลส่วนตัวที่ปรากฏอยู่บนเอกสารที่รัฐออกให้เพื่อใช้ในการยืนยันตัวตน หมายเลขประจำตัวผู้เสียภาษี สัญชาติ รูปปรากฎในหนังสือเดินทาง ใบอนุญาตขับขี่ ลายมือชื่อ ข้อมูลการยืนยันตัวตน ข้อมูลที่ธนาคารได้รับจากท่านจากคำถามยืนยันตัวตนของบริษัทฯ (เช่น รหัสผ่าน คำตอบในกรณีที่ท่านลืมรหัสผ่าน PINs ข้อมูลการจดจำใบหน้าและเสียง เป็นต้น) ภาพถ่าย และภาพจากกล้องวงจรปิด (CCTV)
+
+- ข้อมูลครอบครัว: ชื่อ และข้อมูลการติดต่อของสมาชิกในครอบครัว รวมทั้งคู่สมรส และบุตร
+
+- ข้อมูลการติดต่อ: ที่อยู่ หมายเลขโทรศัพท์ อีเมล์ และรายละเอียดโปรไฟล์ผ่านทางโซเชียลมีเดีย (social media)
+
+- ข้อมูลการศึกษา: รายละเอียดเกี่ยวกับการศึกษา และคุณสมบัติของท่าน
+
+- ข้อมูลทางการเงิน: ที่อยู่สำหรับการเรียกเก็บเงิน ข้อมูลบัญชีธนาคาร หมายเลขบัตรเครดิต ชื่อผู้ถือบัตรหรือรายละเอียดบัญชี บันทึกคำสั่ง รายละเอียดธุรกรรม และรายละเอียดคู่สัญญา
+
+- ข้อมูลการทำธุรกรรม: ชื่อนามสกุลของผู้รับประโยชน์ ที่อยู่ และรายละเอียดอื่น ๆ รวมถึงการติดต่อสื่อสารเกี่ยวกับการโอนเงินผ่านธนาคารของธุรกรรมที่เกี่ยวข้อง
+
+- ข้อมูลอิเล็กทรอนิกส์: ที่อยู่ IP คุกกี้ บันทึกกิจกรรม ข้อมูลระบุตัวตน ตัวระบุออนไลน์ ค่าเอกลักษณ์ประจำอุปกรณ์ (unique device identifiers) และข้อมูลตำแหน่งทางภูมิศาสตร์
+
+- ข้อมูลจากกล้องวงจรปิด (CCTV) และข้อมูลทางภูมิศาสตร์: ข้อมูลที่แสดงถึงตำแหน่งการถอนเงิน หรือการชำระเงินเพื่อเหตุผลด้านความปลอดภัย หรือเพื่อระบุตำแหน่งของสาขาธนาคาร หรือผู้ให้บริการที่ตั้งอยู่ใกล้เคียงกับท่าน
+
+- ข้อมูลส่วนบุคคลที่มีความละเอียดอ่อน (Sensitive personal data): ข้อมูลส่วนบุคคลที่กฎหมายกำหนดเป็นการเฉพาะ ซึ่งรวมถึงข้อมูลของท่านเกี่ยวกับเชื้อชาติ เผ่าพันธุ์ ความคิดเห็นทางการเมือง ความเชื่อในลัทธิ ศาสนาหรือปรัชญา พฤติกรรมทางเพศ ประวัติอาชญากรรม ข้อมูลสุขภาพ ความพิการ ข้อมูลสหภาพแรงงาน ข้อมูลพันธุกรรม ข้อมูลชีวภาพ หรือข้อมูลอื่นใดซึ่งกระทบต่อท่านในทำนองเดียวกันตามที่คณะกรรมการคุ้มครองข้อมูลส่วนบุคคลประกาศกำหนด
+
+ 
+
+2. การเก็บรวบรวมข้อมูลส่วนบุคคล
+ในการเก็บรวบรวมข้อมูลส่วนบุคคลจากเจ้าของข้อมูลโดยตรง และการนำข้อมูลส่วนบุคคลไปใช้ รวมถึงการเปิดเผยข้อมูลส่วนบุคคล บริษัทฯ จะขอความยินยอมจากเจ้าของข้อมูลก่อนหรือขณะทำการเก็บรวบรวม หากกฎหมายกำหนดให้ต้องขอความยินยอม และจะดำเนินการเกี่ยวกับข้อมูลส่วนบุคคลเท่าที่จำเป็นตามวัตถุประสงค์ที่บริษัทฯ ระบุไว้โดยแจ้งชัด
+
+ 
+
+บริษัทฯเก็บรวบรวมข้อมูลส่วนบุคคลหลากหลายประเภท โดยประเภทของข้อมูลส่วนบุคคลที่บริษัทฯเก็บรวบรวมนั้น ขึ้นอยู่กับแต่ละสถานการณ์ และสภาพของผลิตภัณฑ์ บริการ และ/หรือธุรกรรมที่ท่านร้องขอ
+
+บริษัทฯเก็บรวบรวมข้อมูลส่วนบุคคลของท่านจากแหล่งข้อมูลที่หลากหลายดังต่อไปนี้
+
+- เมื่อท่านซื้อผลิตภัณฑ์ และ/หรือสมัครใช้บริการของบริษัทฯ
+
+- บทสนทนาทางโทรศัพท์ระหว่างท่านกับบริษัทฯ หรือสำนักงานสาขา รวมถึงการบันทึกการสนทนาทางโทรศัพท์ อีเมล์ บันทึกข้อความ หรือวิธีการอื่นใด
+
+- เมื่อท่านเข้าเยี่ยมชมเว็บไซต์ หรือใช้แอพพลิเคชั่นของบริษัทฯผ่านทางมือถือ ซึ่งรวมถึงคุกกี้ และซอฟต์แวร์ทางอินเทอร์เน็ตอื่น ๆ เพื่อเก็บรวบรวมข้อมูลส่วนบุคคล โปรดดูข้อมูลเพิ่มเติมผ่านทางนโยบายสำหรับคุกกี้ของบริษัทฯ
+
+- ข้อมูลที่ได้จากเอกสารเรียกร้องค่าสินไหมทดแทนกรมธรรม์ประกันภัย หรือเอกสารอื่น ๆ
+
+- การตรวจสอบ และคำชี้แจงใด ๆ ที่เกี่ยวกับการเงิน
+
+- แบบสำรวจลูกค้า
+
+- เมื่อท่านเข้าร่วมกิจกรรมส่งเสริมการขายกับบริษัทฯ
+
+- เมื่อท่านทำให้ข้อมูลส่วนบุคคลของท่านปรากฎแก่สาธารณะอย่างชัดแจ้ง รวมถึงเปิดเผยข้อมูลผ่านทางโซเชียลมีเดีย (social media) ในกรณีดังกล่าว บริษัทฯจะเลือกเก็บรวบรวมเฉพาะข้อมูลส่วนบุคคลที่ท่านเลือกให้ปรากฎต่อสาธารณะเท่านั้น
+
+- เมื่อบริษัทฯได้รับข้อมูลส่วนบุคคลของท่านจากบุคคลที่สาม เช่น นายจ้างของท่าน ลูกค้าของบริษัทฯ หน่วยงานที่เก็บรวบรวมข้อมูลเครดิต เจ้าหน้าที่ของรัฐที่มีอำนาจ หรือหน่วยงานของรัฐอื่นใด เป็นต้น
+
+ 
+
+ทั้งนี้บริษัทฯ อาจเก็บรวบรวมข้อมูลส่วนบุคคลจากแหล่งอื่นที่ไม่ใช่จากเจ้าของข้อมูลส่วนบุคคลโดยตรง จากแหล่งข้อมูลออนไลน์ และออฟไลน์เพิ่มเติม รวมถึงการเก็บรวบรวมในเชิงพาณิชย์จากแหล่งข้อมูลของบุคคลที่สาม เช่น จากสื่อสาธารณะต่าง ๆ เฉพาะในกรณีที่มีความจำเป็นด้วยวิธีการตามที่กฎหมายกำหนด บริษัทฯอาจรวมข้อมูลนี้เข้ากับข้อมูลส่วนบุคคลของท่านที่บริษัทฯเก็บรวบรวมภายใต้ประกาศความเป็นส่วนตัวฉบับนี้
+
+ 
+
+ในบางกรณี บริษัทฯอาจว่าจ้างบุคคลภายนอกที่ไม่ใช่บริษัทในกลุ่มเพื่อเก็บรวบรวมข้อมูลส่วนบุคคลเกี่ยวกับกิจกรรมทางออนไลน์ของท่านเมื่อท่านเข้าเยี่ยมชมแหล่งข้อมูลออนไลน์ของบริษัทฯ นอกจากนี้ บริษัทฯยังอาจใช้ข้อมูลส่วนบุคคลที่เก็บรวบรวมจากเว็บไซต์ที่ไม่ใช่ของบริษัทในกลุ่มเพื่อวัตถุประสงค์ในการโฆษณาที่เกี่ยวข้องกับพฤติกรรมการเข้าชมของท่าน ทั้งนี้ หากบริษัทฯได้ดำเนินการดังกล่าวนี้ บริษัทฯจะแจ้งเตือน และเสนอทางเลือกที่เหมาะสมเพื่อให้ท่านสามารถปฏิเสธการเก็บรวบรวมดังกล่าวได้
+
+3.วัตถุประสงค์ในการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล
+บริษัทฯ เก็บรวบรวม ใช้ และเปิดเผย ข้อมูลส่วนบุคคลของท่านตามวัตถุประสงค์ดังต่อไปนี้
+
+- เพื่อประโยชน์ในการจัดหาหรือจำหน่ายผลิตภัณฑ์ การให้หรือรับบริการในรูปแบบต่าง ๆ
+
+- เพื่อการทำธุรกรรมทางการเงิน และภาษี ที่เกี่ยวข้องกับการปฏิบัติตามสัญญาของบริษัทฯการค้นคว้า หรือการวิจัย
+
+- เพื่อประโยชน์ในการจัดทำฐานข้อมูลสำหรับการวิเคราะห์และนำเสนอบริการหรือผลิตภัณฑ์ใด ๆ ของบริษัทฯ และบริษัทในกลุ่ม หรือบุคคลที่เป็นผู้จำหน่าย เป็นตัวแทน หรือมีความเกี่ยวข้องกับบริษัทฯ
+
+- เพื่อประโยชน์ในการปรับปรุงคุณภาพในการดำเนินงาน การให้บริการ และการดำเนินการที่เกี่ยวข้องกับธุรกิจของบริษัทฯ
+
+- เพื่อการวิเคราะห์และติดตามการใช้บริการทางเว็บไซต์ และวัตถุประสงค์ในการตรวจสอบย้อนหลังในกรณีที่เกิดปัญหาการใช้งาน
+
+- เพื่อการเข้าร่วมกิจกรรมต่างๆ ของบริษัทฯ
+
+- เพื่อยืนยันตัวตนหรือตรวจสอบตัวตน
+
+- เพื่อวัตถุประสงค์ในการควบคุมการเข้าถึง การป้องกันและระงับอันตรายต่อชีวิต ร่างกาย หรือสุขภาพของท่านหรือบุคคลอื่น การควบคุมและป้องกันโรคติดต่อ และเพื่อประโยชน์ในการดูแลรักษาความปลอดภัย ของบริเวณอาคาร ภายในอาคาร และพื้นที่ของบริษัทฯ
+
+- เพื่อปฏิบัติตามกฎหมายหรือกฎระเบียบที่ใช้บังคับกับบริษัทฯ ทั้งในปัจจุบันและ ในอนาคต
+
+บริษัทฯอาจเก็บรวบรวม ใช้ และ/หรือ เปิดเผยข้อมูลส่วนบุคคลของท่านเฉพาะในกรณีที่บริษัทฯมีเหตุผลที่เหมาะสมในการดำเนินการเช่นว่านั้น ทั้งนี้ รวมถึงการเปิดเผยข้อมูลส่วนบุคคลให้กับบุคคลภายนอกด้วย
+
+ 
+
+บริษัทฯจะใช้ฐานทางกฎหมายอย่างน้อยหนึ่งฐานต่อไปนี้ในการเก็บรวบรวม ใช้ และ/หรือเปิดเผยข้อมูลส่วนบุคคล
+
+- เมื่อเป็นการปฏิบัติตามข้อตกลงในสัญญาที่บริษัทฯทำไว้กับท่าน (ฐานการปฏิบัติตามสัญญา) - กล่าวคือ เมื่อบริษัทฯต้องการข้อมูลส่วนบุคคลของท่านเพื่อที่จะให้บริการแก่ท่านตามสัญญา หรือก่อนที่บริษัทฯจะเข้าทำสัญญากับท่าน
+
+- เมื่อเป็นหน้าที่ตามกฎหมายของบริษัทฯ (ฐานหน้าที่ตามกฎหมาย) - กล่าวคือ เมื่อบริษัทฯมีความจำเป็นต้องเก็บรวบรวม ใช้ และ/หรือเปิดเผยข้อมูลส่วนบุคคลของท่านเพื่อปฏิบัติตามกฎหมาย หรือภาระข้อผูกพันตามกฎหมาย
+
+- เมื่อเป็นผลประโยชน์อันชอบด้วยกฎหมายของบริษัทฯ (ฐานผลประโยชน์อันชอบด้วยกฎหมาย) - กล่าวคือ เมื่อบริษัทฯเก็บรวบรวม ใช้ และ/หรือเปิดเผยข้อมูลส่วนบุคคลของท่านเพื่อผลประโยชน์อันชอบด้วยกฎหมายของบริษัทฯตามที่กฎหมายอนุญาต เว้นแต่ผลประโยชน์อันชอบด้วยกฎหมายของบริษัทฯนั้นมีความสำคัญน้อยกว่าสิทธิขั้นพื้นฐานของท่าน และ/หรือ
+
+- เมื่อท่านให้ความยินยอม (ฐานความยินยอม) - กล่าวคือ เมื่อท่านให้ความยินยอมแก่บริษัทฯในการเก็บรวบรวม ใช้ และ/หรือเปิดเผยข้อมูลส่วนบุคคลของท่านเพื่อวัตถุประสงค์ใดวัตถุประสงค์หนึ่ง
+
+ 
+
+ข้อมูลส่วนบุคคลที่บริษัทฯ ดำเนินการเก็บรวบรวมเพื่อวัตถุประสงค์ข้างต้นเป็นข้อมูลที่จำเป็นในการปฏิบัติตามสัญญาหรือการปฏิบัติตามกฎหมายต่าง ๆ ที่ใช้บังคับ หากท่านไม่ให้ข้อมูลส่วนบุคคลที่จำเป็นดังกล่าว อาจเป็นการฝ่าฝืนกฎหมาย หรือบริษัทฯ อาจไม่สามารถบริหารหรือจัดการสัญญา หรืออำนวยความสะดวกในการดำเนินการต่างๆ ให้กับท่านได้
+
+ 
+
+ทั้งนี้หากภายหลังมีการเปลี่ยนแปลงวัตถุประสงค์ในการเก็บรวบรวมข้อมูลส่วนบุคคล บริษัทฯ จะแจ้งให้ท่านทราบ และดำเนินการอื่นใดตามที่กฎหมายกำหนด รวมถึงจัดให้มีบันทึกการแก้ไขเพิ่มเติมไว้เป็นหลักฐาน
+
+ 
+
+เว้นแต่ได้กำหนดไว้ในประกาศความเป็นส่วนตัวนี้ บริษัทฯจะไม่ใช้ข้อมูลส่วนบุคคลเพื่อวัตถุประสงค์อื่นนอกเหนือจากวัตถุประสงค์ตามที่ระบุไว้ในประกาศความเป็นส่วนตัวนี้ หากบริษัทฯจะเก็บรวบรวม ใช้ และ/หรือเปิดเผยข้อมูลเพิ่มเติม ซึ่งไม่ได้ระบุไว้ในประกาศความเป็นส่วนตัวนี้ บริษัทฯจะแจ้งให้ท่านทราบ และขอความยินยอมจากท่านก่อนการเก็บรวบรวม ใช้ และ/หรือเปิดเผย เว้นแต่ในกรณีที่กฎหมายอนุญาตให้บริษัทฯดำเนินการดังกล่าวได้โดยไม่ต้องอาศัยความยินยอมของท่าน ท่านมีสิทธิให้ความยินยอม หรือปฏิเสธการเก็บรวบรวม ใช้ และ/หรือเปิดเผยข้อมูลส่วนบุคคลของท่าน
+
+ 
+
+4. การเปิดเผยข้อมูลส่วนบุคคล
+บริษัทฯอาจเปิดเผยข้อมูลส่วนบุคคลของท่านให้กับบุคคลอื่นในกรณีที่สามารถทำได้ตามกฎหมาย รวมถึงกรณีดังต่อไปนี้ที่บริษัทฯ หรือบุคคลอื่นดังกล่าว
+
+- จำเป็นต้องปฏิบัติหน้าที่ตามสัญญาที่เกี่ยวข้องกับผลิตภัณฑ์ หรือบริการ (เช่น เพื่อปฏิบัติตามคำขอชำระเงิน เป็นต้น)
+
+- มีหน้าที่ตามกฎหมายในการกระทำการดังกล่าว (เช่น เพื่อสืบหา และป้องกันการทุจริต การหลบหลีกภาษี อาชญากรรมทางการเงิน ป้องกันการฟอกเงิน)
+
+- จำเป็นต้องรายงานตามกฎหมาย ดำเนินคดี ใช้สิทธิตามกฎหมาย หรือปกป้องสิทธิเรียกร้องตามกฎหมาย
+
+- กระทำไปเพื่อผลประโยชน์อันชอบด้วยกฎหมายของบริษัทฯ (เช่น เพื่อบริหารความเสี่ยง ยืนยันตัวตน ให้บริษัทอื่นสามารถให้บริการตามที่ท่านร้องขอได้ หรือประเมินความเหมาะสมของท่านต่อผลิตภัณฑ์ และ/หรือบริการ) และ/หรือ
+
+- ขอความยินยอมจากท่านในการเปิดเผยข้อมูลดังกล่าว และท่านให้ความยินยอม
+
+ 
+
+บริษัทฯอาจเปิดเผยข้อมูลส่วนบุคคลของท่านเพื่อวัตถุประสงค์ที่กล่าวข้างต้นให้กับบุคคลอื่นดังต่อไปนี้
+
+- บริษัทอื่น ๆ ในกลุ่มของบริษัทฯ และผู้รับเหมาช่วง ตัวแทน หรือผู้ให้บริการที่ทำงานให้บริษัทฯ หรือให้บริการแก่บริษัทฯ หรือแก่บริษัทอื่น ๆ ในกลุ่มของบริษัทฯ รวมถึงพนักงาน ผู้รับเหมาช่วง ผู้ให้บริการ กรรมการ และเจ้าหน้าที่ของผู้ให้บริการดังกล่าวนี้ด้วย รวมถึงคู่ค้าของบริษัทฯ
+
+- ผู้ได้รับมอบหมายให้จัดการดูแลทรัพย์สิน หรือผลประโยชน์ใด ๆ เจ้าพนักงานพิทักษ์ทรัพย์ หรือเจ้าพนักงานบังคับคดี
+
+- บุคคลที่ค้ำประกัน หรือวางหลักทรัพย์อื่น ๆ ตามจำนวนที่ท่านมีภาระต้องชำระให้กับบริษัทฯ
+
+- บุคคลใด ๆ ที่ท่านได้ชำระเงินให้ และ/หรือได้รับการชำระเงิน
+
+- ตัวแทน ตัวแทนของบริษัทฯ แผนกการเงิน ระบบการชำระเงิน คู่ค้า และบริษัทอื่น ๆ ที่ท่านลงทุนผ่านบริษัทฯ
+
+- สถาบันการเงินอื่น ผู้ให้กู้ และผู้ถือหลักประกัน เจ้าหน้าที่กรมสรรพากร สมาคมการค้า หน่วยงานที่เก็บรวบรวมข้อมูลเครดิต ผู้ให้บริการการชำระเงิน และตัวแทนเรียกชำระหนี้
+
+- ผู้จัดการกองทุนใด ๆ ที่ให้บริการด้านการจัดการสินทรัพย์ให้กับท่าน และโบรกเกอร์ใด ๆ ที่แนะนำท่านให้กับบริษัทฯ
+
+- บุคคล หรือบริษัทใด ๆ ซึ่งเกี่ยวข้องกับการปรับโครงสร้างบริษัท การควบรวม หรือเข้าถือครองกิจการที่เกิดขึ้น หรืออาจเกิดขึ้น โดยรวมถึงการโอนสิทธิ หรือหน้าที่ใด ๆ ซึ่งบริษัทฯ มีอยู่ภายใต้สัญญาระหว่างบริษัทฯ และท่าน
+
+- หน่วยงานที่บังคับใช้กฎหมาย รัฐบาล ศาล กระบวนการทางศาล หน่วยงานระงับข้อพิพาท ผู้กำกับดูแลบริษัทฯ ผู้ตรวจสอบบัญชี และบุคคลใด ๆ ซึ่งแต่งตั้ง หรือร้องขอโดยผู้กำกับดูแลบริษัทฯให้ทำการตรวจสอบกิจกรรมการดำเนินงานของบริษัทฯ
+
+- บุคคลอื่นใดซึ่งมีความเกี่ยวข้องกับข้อพิพาทใด ๆ ที่เกิดขึ้น รวมถึงข้อพิพาทที่เกี่ยวข้องกับการทำธุรกรรม
+
+- หน่วยงานป้องกันการทุจริตซึ่งใช้ข้อมูลดังกล่าวเพื่อสืบหา และป้องกันการทุจริต และอาชญากรรมทางการเงินอื่น ๆ และเพื่อยืนยันตัวตนของท่าน
+
+- บุคคลใด ๆ ที่ออกคำสั่ง หรือบริหารจัดการบัญชีของท่าน ผลิตภัณฑ์ หรือบริการในนามของท่าน (เช่น ผู้รับมอบอำนาจ ทนายความ เป็นต้น)
+
+- บุคคลใด ๆ ที่บริษัทฯ ได้รับคำสั่งจากท่านให้เปิดเผยข้อมูลส่วนบุคคลของท่านให้กับบุคคลดังกล่าว และ/หรือ
+
+- ฝ่ายอื่น ๆ ที่เกี่ยวข้องเพื่อวัตถุประสงค์ทางการตลาดใด ๆ
+
+ 
+
+5. การเก็บรักษาข้อมูลส่วนบุคคล
+บริษัทฯจะเก็บข้อมูลส่วนบุคคลของท่านไว้ตราบเท่าที่จำเป็นเพื่อให้บรรลุวัตถุประสงค์ในการเก็บรวบรวมข้อมูลดังกล่าวเท่านั้น กล่าวคือ เพื่อวัตถุประสงค์ในการรายงานตามกฎหมาย เพื่อให้บริการตามที่ท่านร้องขอ หรือเพื่อปฏิบัติตามกฎหมายที่เกี่ยวข้อง
+
+โดยจัดเก็บในรูปแบบเอกสาร และ/หรือข้อมูลอิเล็กทรอนิกส์ และจัดเก็บในสถานที่ที่มีการจำกัดสิทธิเข้าถึง เช่น เก็บไว้ใน Server หรือเก็บไว้บน Cloud ที่เป็นผู้ให้บริการของบริษัท เป็นต้น
+
+บริษัทฯจะเก็บรักษาข้อมูลส่วนบุคคลของท่านไว้เป็นเวลา 10 ปีภายหลังจากที่ท่านไม่ได้เป็นลูกค้าของบริษัทฯ แล้ว ทั้งนี้ เพื่อประโยชน์ของบริษัทฯในการดำเนินข้อพิพาททางสัญญาใด ๆ ที่อาจเกิดขึ้นนั้นในระยะเวลาดังกล่าว เว้นแต่กรณีที่มีเหตุผลทางกฎหมาย หรือเหตุผลทางเทคนิครองรับ บริษัทฯอาจเก็บรักษาข้อมูลส่วนบุคคลของท่านไว้นานกว่า 10 ปีได้ หากบริษัทฯไม่มีความจำเป็นที่จะต้องเก็บรักษาข้อมูลของท่านแล้ว บริษัทฯจะทำลาย ลบ หรือทำให้ข้อมูลส่วนบุคคลเป็นข้อมูลที่ไม่สามารถระบุตัวบุคคลที่เป็นเจ้าของข้อมูลส่วนบุคคลได้ (เพื่อที่ข้อมูลดังกล่าวจะไม่มีความเชื่อมโยงถึงท่านอีกต่อไป)
+6.ผู้เยาว์ บุคคลไร้ความสามารถ บุคคลเสมือนไร้ความสามารถ
+บริษัทฯ จะไม่ทำการเก็บรวบรวมข้อมูลส่วนบุคคลนั้นจนกว่าจะได้รับความยินยอมจากผู้ใช้อำนาจปกครอง หรือผู้อนุบาล หรือผู้พิทักษ์ แล้วแต่กรณี ทั้งนี้ เป็นไปตามเงื่อนไขที่กฎหมายกำหนด
+
+หากบริษัทฯ ไม่ทราบมาก่อนว่าเจ้าของข้อมูลส่วนบุคคลเป็นผู้เยาว์ บุคคลไร้ความสามารถ บุคคลเสมือนไร้ความสามารถ และได้ตรวจพบในภายหลังว่าบริษัทฯ ได้เก็บรวบรวมข้อมูลส่วนบุคคลดังกล่าวไปแล้วโดยปราศจากความยินยอมจากผู้ใช้อำนาจปกครอง หรือผู้อนุบาล หรือผู้พิทักษ์ แล้วแต่กรณี บริษัทฯ จะดำเนินการลบทำลายข้อมูลส่วนบุคคลนั้นโดยเร็วหากไม่มีเหตุอื่นใดอันชอบด้วยกฎหมายที่จะเก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลดังกล่าวได้
+
+ 
+
+7.การรักษาความมั่นคงปลอดภัย
+บริษัทฯ กำหนดให้มีมาตรการที่เหมาะสม และเข้มงวดในการรักษาความมั่นคงปลอดภัย ตามนโยบายและแนวปฏิบัติในการรักษาความมั่นคงปลอดภัยด้านเทคโนโลยีสารสนเทศของบริษัทฯ เพื่อป้องกันการสูญหาย การเข้าถึง ทำลาย ใช้ แปลง แก้ไขหรือมิให้มีการนำข้อมูลส่วนบุคคลไปใช้โดยไม่มีสิทธิหรือไม่ชอบด้วยกฎหมาย
+
+ 
+
+8.สิทธิของท่านในฐานะเจ้าของข้อมูลส่วนบุคคล
+ในฐานะที่เป็นเจ้าของข้อมูลส่วนบุคคลท่านมีสิทธิตามที่กำหนดไว้โดยพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 รวมถึงสิทธิต่าง ๆ ดังนี้
+
+ 
+
+8.1 สิทธิในการเพิกถอนความยินยอม
+ท่านมีสิทธิในการเพิกถอนความยินยอมในการประมวลผลข้อมูลส่วนบุคคลที่ท่านได้ให้ความยินยอมกับบริษัทฯ ได้ เว้นแต่การเพิกถอนความยินยอมจะมีข้อจำกัดโดยกฎหมายหรือสัญญาที่ให้ประโยชน์แก่ท่าน ในฐานะที่ท่านเป็นเจ้าของข้อมูล
+
+ทั้งนี้ การเพิกถอนความยินยอมจะไม่ส่งผลกระทบต่อการประมวลผลข้อมูลส่วนบุคคลที่ท่าน ได้ให้ความยินยอมไปแล้วโดยชอบด้วยกฎหมาย
+
+ 
+8.2 สิทธิในการขอเข้าถึงข้อมูลส่วนบุคคล
+ท่านมีสิทธิขอเข้าถึงและขอรับสำเนาข้อมูลของท่านซึ่งอยู่ในความรับผิดชอบของบริษัทฯ รวมถึงขอให้บริษัทฯ เปิดเผยการได้มาซึ่งข้อมูลดังกล่าวที่ท่านไม่ได้ให้ความยินยอมต่อบริษัทฯ ได้
+
+ 
+
+8.3 สิทธิในการขอให้ส่งหรือโอนข้อมูลส่วนบุคคล
+ท่านมีสิทธิขอให้บริษัทฯ โอนข้อมูลส่วนบุคคลของท่านที่ท่านให้ไว้กับบริษัทฯ ได้ตามที่กฎหมายกำหนด
+
+ 
+
+8.4 สิทธิในการคัดค้านการเก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคล
+ท่านมีสิทธิในการคัดค้านการประมวลผลข้อมูลที่เกี่ยวกับท่านสำหรับกรณีการเก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคลที่เกี่ยวกับตนได้ตามที่กฎหมายกำหนด
+
+ 
+8.5 สิทธิในการขอลบข้อมูลส่วนบุคคล
+ท่านมีสิทธิขอให้บริษัทฯ ลบหรือทำลายหรือทำให้ข้อมูลส่วนบุคคลเป็นข้อมูลที่ไม่สามารถระบุตัวตนได้ตามที่กฎหมายกำหนด
+
+ 
+
+8.6 สิทธิในการขอให้ระงับการใช้ข้อมูลส่วนบุคคล
+ท่านมีสิทธิขอให้บริษัทฯ ระงับการใช้ข้อมูลของท่านได้ตามที่กฎหมายกำหนด
+
+ 
+
+8.7 สิทธิในการขอแก้ไขข้อมูลส่วนบุคคลให้ถูกต้อง
+กรณีที่ท่านเห็นว่าข้อมูลที่บริษัทฯ มีอยู่นั้นไม่ถูกต้องหรือท่านมีการเปลี่ยนแปลงข้อมูลส่วนบุคคลของท่านเอง ท่านมีสิทธิขอให้บริษัทฯ แก้ไขข้อมูลส่วนบุคคลของท่านเพื่อให้ข้อมูลส่วนบุคคลดังกล่าวถูกต้อง เป็นปัจจุบัน สมบูรณ์ และไม่ก่อให้เกิดความเข้าใจผิด
+
+ 
+8.8 สิทธิในการรับทราบกรณีมีการแก้ไขเปลี่ยนแปลงแบบแจ้งเกี่ยวกับข้อมูลส่วนบุคคลของท่าน
+บริษัทฯ อาจมีการพิจารณาทบทวนและแก้ไขเปลี่ยนแปลงแบบแจ้งนี้ตามความเหมาะสม ในบางครั้งเพื่อให้แน่ใจว่าข้อมูลส่วนบุคคลของท่านจะได้รับความคุ้มครองอย่างเหมาะสม
+
+ 
+
+8.9 สิทธิในการร้องเรียน
+ท่านมีสิทธิในการร้องเรียนต่อพนักงานเจ้าหน้าที่ผู้มีอำนาจตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 หากบริษัทฯ ฝ่าฝืนหรือไม่ปฏิบัติตามพระราชบัญญัติดังกล่าวได้
+
+ในกรณีที่เจ้าของข้อมูลส่วนบุคคลยื่นคำร้องขอใช้สิทธิภายใต้บทบัญญัติของพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 เมื่อบริษัทฯ ได้รับคำร้องขอดังกล่าวแล้ว จะดำเนินการภายในระยะเวลาที่กฎหมายกำหนด อนึ่ง บริษัทฯ สงวนสิทธิที่จะปฏิเสธหรือไม่ดำเนินการตามคำร้องขอดังกล่าวได้ในกรณีที่กฎหมายกำหนด ในกรณีที่เจ้าของข้อมูลมีข้อจำกัดโดยเลือกที่จะให้ข้อมูลส่วนบุคคลเฉพาะอย่าง อาจส่งผลให้ ไม่สามารถได้รับบริการจากบริษัทฯได้อย่างเต็มที่ รวมทั้งบริษัทฯ อาจจะไม่สามารถทำงานร่วมกับเจ้าของข้อมูลส่วนบุคคลหรือให้บริการใด ๆ ได้ หากเจ้าของข้อมูลส่วนบุคคลไม่ยินยอมให้ข้อมูลที่บริษัทฯ ต้องการ
+
+ 
+
+9.นโยบายคุกกี้ (Cookies)
+บริษัทฯ เก็บรวบรวมและใช้คุกกี้รวมถึงเทคโนโลยีอื่นในลักษณะเดียวกันในเว็บไซต์ที่อยู่ภายใต้ความดูแลของบริษัทฯ หรือบนอุปกรณ์ของเจ้าของข้อมูลส่วนบุคคล ทั้งนี้ เพื่อการดำเนินการด้านความปลอดภัยในการให้บริการของบริษัทฯ และให้ผู้ใช้งานได้รับความสะดวกและประสบการณ์ที่ดีในการใช้งานบริการของบริษัทฯ โดยข้อมูลเหล่านี้จะถูกนำไปเพื่อปรับปรุงเว็บไซต์ของบริษัทฯ ให้ตรงกับความต้องการของท่านมากยิ่งขึ้น โดยท่านสามารถตั้งค่าหรือลบการใช้งานคุกกี้ได้ด้วยตนเองจากการตั้งค่าในเว็บเบราว์เซอร์ (web Browser) ของท่าน ทั้งนี้ สามารถศึกษารายละเอียดเกี่ยวกับนโยบายคุกกี้ โดยคลิกที่นี่
+
+ 
+
+10.หน้าที่ของท่าน
+ท่านมีหน้าที่ตรวจสอบว่า ข้อมูลส่วนบุคคลที่ท่านให้ไว้กับบริษัทฯ ไม่ว่าจะด้วยตัวของท่านเอง หรือในนามของท่าน มีความถูกต้อง และเป็นปัจจุบัน และมีหน้าที่ต้องแจ้งให้บริษัทฯทราบโดยเร็วที่สุดหากข้อมูลดังกล่าวมีการเปลี่ยนแปลง
+
+ 
+
+เมื่อท่านเข้าทำสัญญากับบริษัทฯแล้ว ท่านจะมีหน้าที่ตามสัญญาในการส่งมอบข้อมูลส่วนบุคคลให้แก่บริษัทฯ เพื่อให้ท่านสามารถใช้สิทธิทางกฎหมายได้ การไม่ปฏิบัติตามหน้าที่ดังกล่าวอาจส่งผลให้ท่านสูญเสียสิทธิทางกฎหมาย
+
+ท่านมีความจำเป็นที่จะต้องส่งมอบข้อมูลส่วนบุคคล เช่น ข้อมูลการติดต่อ และข้อมูลการจ่ายเงินให้กับบริษัทฯ เพื่อให้บริษัทฯสามารถเข้าทำสัญญากับท่านได้ หากท่านไม่ส่งมอบข้อมูลส่วนบุคคลดังกล่าว อาจทำให้บริษัทฯไม่สามารถใช้สิทธิ และปฏิบัติตามภาระข้อผูกพันที่เกิดขึ้นจากสัญญาได้อย่างมีประสิทธิภาพ
+
+ 
+11. การส่งหรือโอนข้อมูลไปต่างประเทศ
+บริษัทฯอาจมีความจำเป็นต้องส่งข้อมูลของลูกค้าไปยังต่างประเทศ กรณีที่บริษัทฯจำเป็นต้องส่งข้อมูลไปยังต่างประเทศ บริษัทฯจะส่งข้อมูลก็ต่อเมื่อเป็นไปตามเงื่อนไขอย่างใดอย่างหนึ่งดังต่อไปนี้
+
+- ประเทศปลายทางที่รับข้อมูลได้รับการวินิจฉัยจากคณะกรรมการคุ้มครองข้อมูลส่วนบุคคลว่ามีการคุ้มครองข้อมูลส่วนบุคคลที่เพียงพอ
+
+- หน่วยงานต่างประเทศที่รับข้อมูลอยู่ภายใต้นโยบายในการคุ้มครองข้อมูลส่วนบุคคลที่ได้รับการตรวจสอบและรับรองจากสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล
+
+- กรณีที่ประเทศปลายทางมีมาตรฐานการคุ้มครองข้อมูลส่วนบุคคลที่ไม่เพียงพอ บริษัทฯ จะดูแลให้มั่นใจว่าการส่งหรือโอนข้อมูลส่วนบุคคลเป็นไปตามที่กฎหมายกำหนด และจะดำเนินการให้มีมาตรการคุ้มครองข้อมูลส่วนบุคคลที่เห็นว่าจำเป็นและเหมาะสมสอดคล้องกับมาตรฐานการรักษาความลับ เช่น มีข้อตกลงกับผู้รับข้อมูลในประเทศดังกล่าวเพื่อยืนยันว่าข้อมูลส่วนบุคคลของท่านจะได้รับการคุ้มครองภายใต้มาตรฐานการคุ้มครองข้อมูลส่วนบุคคลที่เทียบเท่ากับประเทศไทย
+
+- เป็นสิ่งจำเป็นเพื่อการใช้สิทธิตามกฎหมาย
+
+- ได้รับความยินยอมจากท่านโดยท่านได้รับทราบถึงมาตรฐานการคุ้มครองส่วนบุคคลที่ไม่เพียงพอของประเทศปลายทางหรือองค์การระหว่างประเทศที่รับข้อมูลส่วนบุคคลแล้ว
+
+- เป็นการจำเป็นเพื่อการปฏิบัติตามสัญญาซึ่งท่านเป็นคู่สัญญาหรือเพื่อใช้ในการดำเนินการตามคำขอของท่านก่อนเข้าทำสัญญานั้น
+
+- เป็นการกระทำตามสัญญาระหว่างบริษัทฯกับบุคคลหรือนิติบุคคลอื่นเพื่อประโยชน์ของท่าน
+
+- เพื่อป้องกันหรือระงับอันตรายต่อชีวิต ร่างกาย หรือสุขภาพของบุคคล เมื่อบุคคลดังกล่าวไม่สามารถให้ความยินยอมในขณะนั้นได้
+
+- เป็นการจำเป็นเพื่อการดำเนินภารกิจเพื่อประโยชน์สาธารณะที่สำคัญ
+
+ 
+
+12.การแก้ไขประกาศความเป็นส่วนตัว
+บริษัทฯจะตรวจสอบประกาศความเป็นส่วนตัวอย่างสม่ำเสมอ ดังนั้น ประกาศความเป็นส่วนตัวนี้ จึงอาจมีการแก้ไขเปลี่ยนแปลง สำหรับการแก้ไขเปลี่ยนแปลงครั้งล่าสุดนั้น สามารถดูได้จากวันที่ด้านบนของประกาศความเป็นส่วนตัวฉบับนี้
+
+ 
+
+13.ช่องทางการติดต่อบริษัทฯ
+ในกรณีที่ท่านมีข้อสงสัยเกี่ยวกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน หรือต้องการใช้สิทธิใด ๆ โปรดติดต่อบริษัทฯ ที่
+
+ 
+
+บริษัท บุญถาวรเซรามิค จำกัด และบริษัทในเครือ
+
+สถานที่ติดต่อ : 61 ซ.รุ่งเรือง ถ.สุทธิสารวินิจฉัย แขวงสามเสนนอก เขตห้วยขวาง กทม. 10310
+
+เบอร์โทรศัพท์ : 02-657-1111
+
+ 
+
+เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล
+
+สถานที่ติดต่อ :  61 ซ.รุ่งเรือง ถ.สุทธิสารวินิจฉัย แขวงสามเสนนอก เขตห้วยขวาง กทม. 10310
+
+อีเมล : DPO@boonthavorn.com
+
+ 
+
+หมายเหตุ
+
+- ประกาศความเป็นส่วนตัวนี้มีผลใช้บังคับเมื่อบทบัญญัติของพระราชบัญญัติคุ้มครองส่วนบุคคล พ.ศ.2562 (ตามที่อาจมีการแก้ไขเพิ่มเติม) ที่เกี่ยวข้องมีผลใช้บังคับกับบริษัทฯ</i>
+
+        </div>
+      `,
+      width: '90%',
+      confirmButtonText: 'กลับ (Back)',
+      confirmButtonColor: 'var(--main)'
+    }).then(() => {
+      // พอกดปุ่ม 'กลับ' ให้เด้งหน้าต่างกดยอมรับขึ้นมาให้ลูกค้าติ๊กถูกต่อได้เลย
+      showPDPAPopup();
+    });
+  }
+
+  function sendOTPProcess() {
+    Swal.fire({ title: 'Sending Code to Email...', text: 'Please wait', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+    google.script.run.withSuccessHandler(res => {
+      if(res.success) {
+        Swal.close();
+        showOTPModal();
+      } else {
+        showErrorMsg(res.message);
+      }
+    }).requestOTP(tempRegistrationData.email, tempRegistrationData.name);
+  }
+
+  function showOTPModal() {
+    Swal.fire({
+      title: 'Enter Verification Code',
+      text: `A 6-digit code has been sent to ${tempRegistrationData.email}`,
+      input: 'text',
+      inputAttributes: { maxlength: 6, autocapitalize: 'off', autocorrect: 'off', style: 'text-align:center; font-size:24px; letter-spacing:5px;' },
+      showCancelButton: true,
+      confirmButtonText: 'Verify & Register',
+      confirmButtonColor: '#c5a059',
+      showLoaderOnConfirm: true,
+      preConfirm: (otpInput) => {
+        if(!otpInput || otpInput.length !== 6) {
+          Swal.showValidationMessage('Please enter a valid 6-digit code');
+          return false;
+        }
+        return new Promise((resolve) => {
+          google.script.run.withSuccessHandler(result => {
+            resolve(result);
+          }).verifyOTPAndRegister(tempRegistrationData, otpInput);
+        });
+      },
+      allowOutsideClick: false
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if(result.value === "Success") {
+          Swal.fire({ icon: 'success', title: 'Welcome!', text: 'Account created successfully. Please sign in.', confirmButtonColor: '#c5a059' });
+          document.querySelectorAll('#p-reg input, #p-reg select').forEach(el => { if(el.type !== 'checkbox') el.value = ''; });
+          document.getElementById('re-pdpa').checked = false;
+          showPage('login');
+        } else {
+          Swal.fire({ icon: 'error', title: 'Verification Failed', text: result.value, confirmButtonColor: '#14284b' }).then(() => showOTPModal());
+        }
+      }
+    });
+  }
+
+  function handleLogin() {
+    const e = document.getElementById('li-email').value;
+    const pass = document.getElementById('li-pass').value;
+    if(!e || !pass) return showErrorMsg("Please enter Email and Password.");
+    
+    Swal.fire({ title: 'Signing in...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+    google.script.run.withSuccessHandler(res => {
+      if(res.user) {
+        Swal.close();
+        sessionEmail = e;
+        localStorage.setItem('sessionEmail', e);
+        localStorage.setItem('loginTime', Date.now().toString());
+
+        document.getElementById('app-nav').style.display = 'flex';
+        renderApp(res);
+        nav('home');
+      } else {
+        Swal.fire({ icon: 'error', title: 'Login Failed', text: res.error, confirmButtonColor: '#14284b' });
+      }
+    }).loginUser(e, pass);
+  }
+
+  function handleSignOut(forceClear = false) {
+    if (forceClear === true) {
+        sessionEmail = "";
+        currentData = null;
+        localStorage.removeItem('sessionEmail');
+        localStorage.removeItem('loginTime');
+        document.getElementById('li-email').value = "";
+        document.getElementById('li-pass').value = "";
+        showPage('login');
+        return;
+    }
+
+    Swal.fire({
+      title: 'Sign Out?',
+      text: "Are you sure you want to log out?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#14284b',
+      confirmButtonText: 'Yes, Sign Out'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        sessionEmail = "";
+        currentData = null;
+        localStorage.removeItem('sessionEmail');
+        localStorage.removeItem('loginTime');
+        document.getElementById('li-email').value = "";
+        document.getElementById('li-pass').value = "";
+        showPage('login');
+      }
+    });
+  }
+
+  function sync() {
+    if(sessionEmail) google.script.run.withSuccessHandler(renderApp).getAppData(sessionEmail);
+  }
+
+  function renderApp(data) {
+    currentData = data;
+    applyTheme(data.user.tier);
+    updateStaticText();
+
+    document.getElementById('h-pts').innerText = data.user.points.toLocaleString();
+    document.getElementById('h-tier').innerText = "TIER: " + data.user.tier;
+    const spend = data.user.spend;
+    const goal = data.user.nextTierGoal || 30000;
+    const min = data.user.currentTierMin || 0;
+    let progressPercent = 100;
+    let spendText = `${spend.toLocaleString()} THB`;
+    if (spend < 200000) {
+      progressPercent = Math.min(((spend - min) / (goal - min)) * 100, 100);
+      spendText = `${spend.toLocaleString()} / ${goal.toLocaleString()}`;
+    }
+    document.getElementById('h-spend').innerText = spendText;
+    document.getElementById('h-bar').style.width = progressPercent + "%";
+    document.getElementById('m-name').innerText = data.user.title + " " + data.user.name;
+    document.getElementById('m-tier-txt').innerText = "TIER: " + data.user.tier;
+    document.getElementById('h-user-info').innerText = data.user.name + " | " + data.user.email;
+    if (data.user.profilePic) document.getElementById('m-profile-pic').src = data.user.profilePic;
+    
+    document.getElementById('rewards-list').innerHTML = data.rewards.map((r, index) => {
+      const enough = data.user.points >= r.pts;
+      const canRedeem = enough && !r.isOutOfStock; 
+      const txt = LANG[currentLang]; 
+
+      let tierBadge = '';
+      if(r.tiersAllowed) {
+        tierBadge = `<div style="position: absolute; top: 0; right: 0; background: var(--main); color: white; font-size: 9px; padding: 2px 8px; border-radius: 0 0 0 8px; font-weight: 600;">${r.tiersAllowed}</div>`;
+      }
+
+      return `
+      <div style="display: flex; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 12px; overflow: hidden; border: 1px solid #f0f0f0; min-height: 120px; position: relative;">
+        ${tierBadge}
+        <div style="width: 130px; flex-shrink: 0; background: #ffffff; position: relative; border-right: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: center;">
+          <img src="${r.image}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 5px;" onerror="this.src='https://placehold.co/150x150/f0f0f0/ccc?text=No+Image'">
+        </div>
+        <div style="flex: 1; padding: 12px 15px; display: flex; flex-direction: column; justify-content: center;">
+          <div style="font-size: 15px; font-weight: 500; color: #111; margin-bottom: 5px; line-height: 1.2;">${r.name}</div>
+          <div style="font-size: 12px; color: #555; margin-bottom: 2px;">
+            ${txt.ptsNeeded} <strong style="color: ${enough ? 'var(--main)' : 'var(--red)'};">${r.pts}</strong>
+          </div>
+          <div style="font-size: 12px; color: #888; margin-bottom: 12px;">
+            ${txt.expiry} ${r.expiry === 'No expiry' || r.expiry === 'ไม่มีกำหนด' ? txt.noExpiry : r.expiry}
+          </div>
+          <button class="${canRedeem ? '' : 'btn-off'}" 
+            style="width: 100%; padding: 8px 0; margin: 0; font-size: 14px; border-radius: 8px; font-weight: 500; border: none; background: ${canRedeem ? 'var(--main)' : '#eee'}; color: ${canRedeem ? 'white' : '#bbb'}; cursor: ${canRedeem ? 'pointer' : 'not-allowed'};" 
+            onclick="${r.isOutOfStock ? `showErrorMsg('${txt.fullyRedeemed}')` : (enough ? `showTerms(${index})` : `showErrorMsg('${txt.insufficientPts}')`)}">
+            ${r.isOutOfStock ? txt.fullyRedeemed : txt.redeem}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+    renderHistory(data.history);
+  }
+
+  // --- 1. วางทับฟังก์ชัน renderHistory เดิม ---
+  function renderHistory(history) {
+    try {
+      const txt = LANG[currentLang] || LANG['en'];
+      
+      if (!history || history.length === 0) {
+        document.getElementById('history-list').innerHTML = `<p style="text-align:center; color:#999; margin-top:30px;">${txt.noHistory}</p>`;
+        return;
+      }
+
+      document.getElementById('history-list').innerHTML = history.map((h, index) => {
+        const rawDate = h.rawDate || Date.now();
+        const remains = 3600000 - (Date.now() - rawDate);
+        
+        // เช็คสถานะจากที่ Staff กดใช้งาน
+        const status = h.status || 'Active';
+        const isUsed = status.toString().toLowerCase() === 'used';
+        const isExpired = remains <= 0 || status.toString().toLowerCase() === 'expired';
+        
+        let timer = '';
+        if (isUsed) {
+           timer = `<div style="color:#27ae60; font-size:12px; font-weight:600; margin-top:5px;"><i class="fa-solid fa-check-circle"></i> ใช้งานแล้ว (Used)</div>`;
+        } else if (isExpired) {
+           timer = `<div style="color:#999; font-size:12px; margin-top:5px;"><i class="fa-solid fa-circle-xmark"></i> ${txt.expired}</div>`;
+        } else {
+           timer = `<div style="color:#e74c3c; font-size:12px; font-weight:600; margin-top:5px;"><i class="fa-solid fa-clock"></i> ${txt.expiresIn} ${Math.floor(remains/60000)}m ${Math.floor((remains%60000)/1000)}s</div>`;
+        }
+        
+        return `
+        <div style="display: flex; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 12px; overflow: hidden; border: 1px solid #f0f0f0; cursor: pointer; opacity: ${isExpired || isUsed ? '0.7' : '1'}; transition: transform 0.2s;" onclick="showHistoryDetail(${index})">
+          
+          <div style="width: 115px; flex-shrink: 0; background: #14284b; position: relative; min-height: 110px;">
+            <img src="${h.image || ''}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;" onerror="this.src='https://placehold.co/150x150/ccc/999?text=No+Img'">
+          </div>
+
+          <div style="flex: 1; padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+            <div style="font-size: 15px; font-weight: 500; color: #111 !important; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${h.name || 'Reward Item'}</div>
+            <div style="font-size: 11px; color: #888 !important; margin-bottom: 6px;">${h.date || '-'}</div>
+            <div style="font-size: 18px; font-weight: 600; color: #c5a059 !important; letter-spacing: 1px; text-decoration: ${isUsed ? 'line-through' : 'none'};">${h.code || '------'}</div>
+            ${timer}
+          </div>
+
+        </div>`;
+      }).join('');
+      
+    } catch (err) {
+      console.error(err);
+      document.getElementById('history-list').innerHTML = `<p style="text-align:center; color:red; padding:20px;">Error: ${err.message}</p>`;
+    }
+  }
+
+  // --- 2. วางทับฟังก์ชัน showHistoryDetail เดิม ---
+  function showHistoryDetail(index) {
+    if (!currentData || !currentData.history) return;
+    const h = currentData.history[index];
+    const remains = 3600000 - (Date.now() - h.rawDate);
+    
+    // ดึงสถานะมาใช้งานใน Popup ด้วย
+    const status = h.status || 'Active';
+    const isUsed = status.toString().toLowerCase() === 'used';
+    const isExpired = remains <= 0 || status.toString().toLowerCase() === 'expired';
+
+    let statusHtml = '';
+    if (isUsed) {
+       statusHtml = `<div style="color: #27ae60; font-weight: bold; margin-bottom: 15px; background: #eafaf1; padding: 10px; border-radius: 8px;"><i class="fa-solid fa-check-circle"></i> This code has been USED</div>`;
+    } else if (isExpired) {
+       statusHtml = `<div style="color: #e74c3c; font-weight: bold; margin-bottom: 15px; background: #ffebeb; padding: 10px; border-radius: 8px;"><i class="fa-solid fa-circle-xmark"></i> This code has EXPIRED</div>`;
+    } else {
+       statusHtml = `<div style="color: var(--main); font-weight: bold; margin-bottom: 15px; background: #f0f4f8; padding: 10px; border-radius: 8px;"><i class="fa-solid fa-clock"></i> Valid for: ${Math.floor(remains/60000)} mins left</div>`;
+    }
+
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${h.code}`;
+
+    Swal.fire({
+      title: 'Reward Details',
+      html: `
+        ${statusHtml}
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 10px;">
+          <img src="${qrApiUrl}" style="width: 150px; height: 150px; margin-bottom: 15px; opacity: ${isExpired || isUsed ? '0.2' : '1'};" alt="QR Code">
+          <div style="font-size: 18px; font-weight: 500; color: #111; margin-bottom: 15px; text-align: center;">${h.name}</div>
+          <div style="background: #f2f2f6; border-radius: 20px; padding: 8px 20px; font-size: 16px; color: #333; font-weight: 500; display: inline-block; text-decoration: ${isUsed ? 'line-through' : 'none'};">
+            Code : <span style="letter-spacing: 2px;">${h.code}</span>
+          </div>
+        </div>
+      `,
+      confirmButtonColor: '#14284b',
+      confirmButtonText: 'Close',
+      customClass: { confirmButton: 'btn-main' }
+    });
+  }
+
+  function showTerms(index) {
+    const r = currentData.rewards[index];
+    const termsHtml = r.terms.replace(/\n/g, '<br>'); 
+    const txt = LANG[currentLang];
+    
+    Swal.fire({
+      html: `
+        <div style="width: 100%; height: 200px; background: #f8f9fa; border-radius: 12px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #eee;">
+          <img src="${r.image}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 10px;" alt="${r.name}">
+        </div>
+        <h3 style="color: var(--main); margin-top: 0; margin-bottom: 20px; font-size: 22px;">${r.name}</h3>
+        <div style="text-align:left; font-size:13px; line-height:1.6; color:#555; background:#f5f7f9; padding:15px; border-radius:10px; margin-top:10px; margin-bottom:15px;">
+          <strong style="color:var(--main);">${txt.terms}</strong><br>
+          ${termsHtml}
+        </div>
+        <div style="color:var(--red); font-size:14px; font-weight:bold; background:#ffebeb; padding:10px; border-radius:8px;">
+          <i class="fa-solid fa-clock"></i> ${txt.valid1hr}
+        </div>
+        <p style="margin-top:15px; font-size:15px;">${txt.confirmUse} <strong>${r.pts} PTS</strong> ${txt.ptsToRedeem}</p>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--main)',
+      cancelButtonColor: '#ddd',
+      confirmButtonText: txt.confirm,
+      cancelButtonText: txt.cancel,
+      customClass: { confirmButton: 'btn-main' }
+    }).then((result) => {
+      if (result.isConfirmed) executeRedeem(r.name, r.pts);
+    });
+  }
+
+  function showHistoryDetail(index) {
+    if (!currentData || !currentData.history) return;
+    const h = currentData.history[index];
+    const remains = 3600000 - (Date.now() - h.rawDate);
+    const isExpired = remains <= 0;
+
+    let statusHtml = '';
+    if (isExpired) {
+       statusHtml = `<div style="color: #e74c3c; font-weight: bold; margin-bottom: 15px; background: #ffebeb; padding: 10px; border-radius: 8px;"><i class="fa-solid fa-circle-xmark"></i> This code has expired</div>`;
+    } else {
+       statusHtml = `<div style="color: var(--main); font-weight: bold; margin-bottom: 15px; background: #f0f4f8; padding: 10px; border-radius: 8px;"><i class="fa-solid fa-clock"></i> Valid for: ${Math.floor(remains/60000)} mins left</div>`;
+    }
+
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${h.code}`;
+
+    Swal.fire({
+      title: 'Reward Details',
+      html: `
+        ${statusHtml}
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 10px;">
+          <img src="${qrApiUrl}" style="width: 150px; height: 150px; margin-bottom: 15px; opacity: ${isExpired ? '0.2' : '1'};" alt="QR Code">
+          <div style="font-size: 18px; font-weight: 500; color: #111; margin-bottom: 15px; text-align: center;">${h.name}</div>
+          <div style="background: #f2f2f6; border-radius: 20px; padding: 8px 20px; font-size: 16px; color: #333; font-weight: 500; display: inline-block;">
+            Code : <span style="letter-spacing: 2px;">${h.code}</span>
+          </div>
+        </div>
+      `,
+      confirmButtonColor: '#14284b',
+      confirmButtonText: 'Close',
+      customClass: { confirmButton: 'btn-main' }
+    });
+  }
+
+  function executeRedeem(rname, pts) {
+    Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+    const code = Math.floor(100000 + Math.random() * 900000); 
+    
+    google.script.run
+    .withFailureHandler(err => {
+      Swal.fire({ icon: 'error', title: 'System Error', text: err.message, confirmButtonColor: '#14284b' });
+    })
+    .withSuccessHandler(res => {
+      if(res.success) { 
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${res.code}`;
+        Swal.fire({ 
+          icon: 'success', 
+          title: 'Redemption Successful!', 
+          html: `
+            <div style="color: #555; font-size: 14px; margin-bottom: 20px;">Please show this code or QR to our staff within 1 hour.</div>
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 10px;">
+              <img src="${qrApiUrl}" style="width: 150px; height: 150px; margin-bottom: 15px;" alt="QR Code">
+              <div style="font-size: 18px; font-weight: 500; color: #111; margin-bottom: 15px; text-align: center;">${rname}</div>
+              <div style="background: #f2f2f6; border-radius: 20px; padding: 8px 20px; font-size: 16px; color: #333; font-weight: 500; display: inline-block;">
+                Code : ${res.code}
+              </div>
+            </div>
+          `,
+          confirmButtonColor: '#c5a059' 
+        });
+        sync(); 
+      } else {
+        showErrorMsg(res.message);
+      }
+    }).processRedeem(sessionEmail, rname, pts, code);
+  }
+
+  function showProfile() {
+    if(!currentData || !currentData.user) return;
+    const u = currentData.user;
+    
+    let fullAddress = [u.address, u.sub, u.dist, u.prov, u.post].filter(Boolean).join(' ');
+    if (!fullAddress.trim()) fullAddress = '-';
+
+    document.getElementById('profile-content').innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="background:#fff; padding:15px; border-radius:10px; border-left:4px solid var(--main); box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:5px;">Account Info</div>
+          <div style="margin-bottom:3px;"><b>Member ID:</b> <span style="color:var(--main); font-weight:600;">${u.memberID || '-'}</span></div>
+          <div><b>Current Tier:</b> <span style="color:var(--gold); font-weight:bold;">${u.tier || '-'}</span></div>
+        </div>
+        <div style="background:#fff; padding:15px; border-radius:10px; border-left:4px solid var(--gold); box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:5px;">Personal Details</div>
+          <div style="margin-bottom:3px;"><b>Name:</b> ${u.title || ''} ${u.name || '-'}</div>
+          <div style="margin-bottom:3px;"><b>Date of Birth:</b> ${u.birth || '-'}</div>
+          <div style="margin-bottom:3px;"><b>Nationality:</b> ${u.nation || '-'}</div>
+          <div><b>Customer Type:</b> ${u.custType || '-'}</div>
+        </div>
+        <div style="background:#fff; padding:15px; border-radius:10px; border-left:4px solid #1abc9c; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:5px;">Contact & Address</div>
+          <div style="margin-bottom:3px;"><b>Email:</b> ${u.email || '-'}</div>
+          <div style="margin-bottom:3px;"><b>Phone:</b> ${u.phone || '-'}</div>
+          <div style="margin-top:8px;"><b>Address:</b></div>
+          <div style="color:#555; line-height:1.5; margin-top:2px;">${fullAddress}</div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('profile-content').style.background = '#f5f7f9';
+    document.getElementById('profile-content').style.padding = '10px';
+    document.getElementById('modal-profile').style.display = 'flex';
+  }
+
+  function closeProfile() { document.getElementById('modal-profile').style.display = 'none'; }
+
+  setInterval(() => {
+    if(currentData && document.getElementById('p-history').classList.contains('active')) renderHistory(currentData.history);
+  }, 1000);
+// --- 1. ฟังก์ชันแสดงชื่อและรูปตอนโหลดข้อมูล ---
+  // (เอาโค้ดนี้ไปแทรกไว้ในฟังก์ชัน renderApp(data) นะครับ)
+  /* วางบรรทัดนี้ต่อจากอัปเดต TIER ใน renderApp */
+  // document.getElementById('h-user-info').innerText = data.user.name + " | " + data.user.email;
+  // if (data.user.profilePic) document.getElementById('m-profile-pic').src = data.user.profilePic;
+
+  // --- 2. ฟังก์ชันอัปโหลดและย่อขนาดรูป (กัน Sheet ค้าง) ---
+  function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    Swal.fire({ title: 'Uploading...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        // ย่อรูปให้เหลือไม่เกิน 250px เพื่อเซฟลง Google Sheet ได้ลื่นๆ
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxSize = 250; 
+        let width = img.width, height = img.height;
+        if (width > height) {
+          if (width > maxSize) { height *= maxSize / width; width = maxSize; }
+        } else {
+          if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+        }
+        canvas.width = width; canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const base64Pic = canvas.toDataURL('image/jpeg', 0.7); // คุณภาพ 70%
+
+        // ส่งรูปลงหลังบ้าน
+        google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+            Swal.fire('Success', 'Profile picture updated!', 'success');
+            document.getElementById('m-profile-pic').src = base64Pic; // เปลี่ยนรูปหน้าจอทันที
+            sync(); // รีโหลดข้อมูล
+          }
+        }).updateCustomerSelf(sessionEmail, { profilePic: base64Pic });
+      };
+    };
+  }
+
+
+  // --- 3. ฟังก์ชันแก้ไขข้อมูลส่วนตัวลูกค้า (อัปเกรดกันระบบหมุนค้าง) ---
+  // --- ฟังก์ชันแก้ไขข้อมูลส่วนตัวลูกค้า (แยกที่อยู่และแก้บั๊กหมุนค้าง) ---
+  function openEditSelf() {
+    closeProfile();
+    const u = currentData.user;
+    
+    Swal.fire({
+      title: 'Edit Profile',
+      html: `
+        <div style="text-align:left; font-size:14px; max-height: 60vh; overflow-y: auto; padding: 5px;">
+          <label style="color:#666; font-size:12px;">Full Name</label>
+          <input id="es-name" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:90%; font-size:15px;" value="${u.name}">
+          
+          <label style="color:#666; font-size:12px;">Phone</label>
+          <input id="es-phone" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:90%; font-size:15px;" value="${u.phone}">
+          
+          <div style="border-top:1px dashed #ddd; margin:15px 0 10px;"></div>
+          
+          <label style="color:#666; font-size:12px;">Address (House No., Building, Street)</label>
+          <input id="es-addr" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:90%; font-size:15px;" value="${u.address}">
+          
+          <div style="display:flex; gap:10px; width:90%; margin:auto;">
+            <div style="flex:1;">
+              <label style="color:#666; font-size:12px;">Sub-district</label>
+              <input id="es-sub" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:100%; font-size:15px;" value="${u.sub}">
+            </div>
+            <div style="flex:1;">
+              <label style="color:#666; font-size:12px;">District</label>
+              <input id="es-dist" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:100%; font-size:15px;" value="${u.dist}">
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:10px; width:90%; margin:auto;">
+            <div style="flex:1;">
+              <label style="color:#666; font-size:12px;">Province</label>
+              <input id="es-prov" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:100%; font-size:15px;" value="${u.prov}">
+            </div>
+            <div style="flex:1;">
+              <label style="color:#666; font-size:12px;">Postcode</label>
+              <input id="es-post" class="swal2-input" style="margin-top:2px; margin-bottom:12px; width:100%; font-size:15px;" value="${u.post}">
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Save',
+      confirmButtonColor: '#14284b'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        // รวบรวมข้อมูลที่แยกช่องไว้
+        const newData = {
+          name: document.getElementById('es-name').value,
+          phone: document.getElementById('es-phone').value,
+          address: document.getElementById('es-addr').value,
+          sub: document.getElementById('es-sub').value,
+          dist: document.getElementById('es-dist').value,
+          prov: document.getElementById('es-prov').value,
+          post: document.getElementById('es-post').value
+        };
+        
+        google.script.run
+          .withFailureHandler(err => {
+            Swal.fire('Error', 'ไม่สามารถเชื่อมต่อระบบได้: ' + err.message, 'error');
+          })
+          .withSuccessHandler(res => {
+            if (res.success) {
+              Swal.fire('Saved!', 'อัปเดตข้อมูลสำเร็จแล้ว', 'success');
+              sync(); 
+            } else {
+              Swal.fire('Failed', res.message, 'error');
+            }
+          })
+          .updateCustomerSelf(sessionEmail, newData);
+          
+      } else {
+        showProfile(); 
+      }
+    });
+  }
+
+  // --- ฟังก์ชันเปิดหน้าต่างเปลี่ยนรหัสผ่าน ---
+  function openChangePassword() {
+    closeProfile(); // ปิดหน้าต่างโปรไฟล์เดิมก่อน
+    
+    Swal.fire({
+      title: 'Change Password',
+      html: `
+        <div style="text-align:left; font-size:14px; margin-top:10px;">
+          <label style="color:#666; font-size:12px;">New Password</label>
+          <input type="password" id="cp-new" class="swal2-input" style="margin-top:2px; margin-bottom:15px; width:90%; font-size:15px;" placeholder="กรอกรหัสผ่านใหม่">
+          
+          <label style="color:#666; font-size:12px;">Confirm Password</label>
+          <input type="password" id="cp-confirm" class="swal2-input" style="margin-top:2px; margin-bottom:10px; width:90%; font-size:15px;" placeholder="ยืนยันรหัสผ่านอีกครั้ง">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Save Password',
+      confirmButtonColor: '#14284b',
+      preConfirm: () => {
+        const p1 = document.getElementById('cp-new').value;
+        const p2 = document.getElementById('cp-confirm').value;
+        if (!p1 || !p2) { Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน'); return false; }
+        if (p1 !== p2) { Swal.showValidationMessage('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return false; }
+        if (p1.length < 4) { Swal.showValidationMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร'); return false; }
+        return p1; // ส่งรหัสผ่านใหม่ไปทำงานต่อ
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        google.script.run
+          .withFailureHandler(err => Swal.fire('Error', 'การเชื่อมต่อขัดข้อง: ' + err.message, 'error'))
+          .withSuccessHandler(res => {
+            if(res.success) {
+              Swal.fire('Success', 'เปลี่ยนรหัสผ่านสำเร็จแล้ว!', 'success');
+            } else {
+              Swal.fire('Failed', res.message, 'error');
+            }
+          })
+          .changeCustomerPassword(sessionEmail, result.value);
+      } else {
+        showProfile(); // ถ้ากดยกเลิก ให้เปิดหน้าโปรไฟล์กลับมา
+      }
+    });
+  }
+
+  function forgotPassword() {
+    Swal.fire({
+      title: 'Reset Password',
+      text: 'กรุณากรอกอีเมลที่ใช้สมัครสมาชิก',
+      input: 'email',
+      inputPlaceholder: 'Email Address',
+      showCancelButton: true,
+      confirmButtonText: 'Send Password',
+      confirmButtonColor: 'var(--main)'
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        Swal.fire({ title: 'Sending...', text: 'กำลังส่งรหัสผ่านใหม่เข้าอีเมล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        google.script.run
+          .withFailureHandler(err => Swal.fire('Error', err.message, 'error'))
+          .withSuccessHandler(res => {
+            if (res.success) {
+              Swal.fire('Sent!', 'รหัสผ่านใหม่ถูกส่งไปที่อีเมลของคุณแล้ว กรุณาเช็คใน Inbox หรือ Junk Mail', 'success');
+            } else {
+              Swal.fire('Failed', res.message, 'error');
+            }
+          })
+          .resetPassword(result.value);
+      }
+    });
+  }
+</script>
+</body>
+</html>
